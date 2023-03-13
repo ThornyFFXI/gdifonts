@@ -56,13 +56,13 @@ end
 function object:get_texture()
     if (self.is_dirty == true) then
         self.is_dirty = false;
+        self.texture = nil;
+        self.rect = nil;
         if (self.settings.text == '') then
-            self.texture = nil;
             return;
         end
         local tx = self.renderer.CreateTexture(self.interface, CreateFontData(self.settings));
         if (tx.Texture == nil) or (tx.Width == 0) or (tx.Height == 0) then
-            self.texture = nil;
             return;
         else
             self.texture = d3d.gc_safe_release(tx.Texture);
