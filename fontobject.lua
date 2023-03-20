@@ -159,11 +159,11 @@ function object:set_gradient_style(style)
 end
 
 function object:set_outline_color(color)
-    if (color ~= self.settings.font_color) then
+    if (color ~= self.settings.outline_color) then
         self.is_dirty = true;
     end
 
-    self.settings.font_color = color;
+    self.settings.outline_color = color;
 end
 
 function object:set_outline_width(width)
