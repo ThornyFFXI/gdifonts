@@ -43,6 +43,8 @@ ffi.cdef[[
     void DestroyFontManager(uint32_t* pManager);
     GdiFontReturn_t CreateTexture(uint32_t* pManager, GdiFontData_t* data);
     bool GetFontAvailable(const char* font);
+    const char* ShiftJIS_To_UTF8(const char* input);
+    const char* UTF8_To_ShiftJIS(const char* input);
 ]]
 
 local interface = renderer.CreateFontManager(d3d.get_device());
@@ -150,6 +152,16 @@ end
 
 function exports:render()
     render_objects();
+end
+
+function exports:convert_shiftjis_to_utf8(text)
+    local cString = renderer.ShiftJIS_To_UTF8(text);
+    return ffi.string(cString);
+end
+
+function exports:convert_utf8_to_shiftjis(text)
+    local cString = renderer.UTF8_To_ShiftJIS(text);
+    return ffi.string(cString);
 end
 
 function exports:set_auto_render(enabled)
