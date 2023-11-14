@@ -109,3 +109,11 @@ local font = 'Grammara';
 local isAvailable = gdi:get_font_available(font);
 ```
 It will return true or false, depending on if the system has the font.
+
+## Using Japanese FFXI resources
+Because FFXI resources are stored in Shift-JIS, they must be converted to render properly.  You can accomplish this using the included encoding lib.  Simply require the lib, and use the function ShiftJIS_To_UTF8 prior to rendering your text.
+```
+local encoding = require('gdifonts.encoding');
+local sjResource = AshitaCore:GetResourceManager():GetString('zones.names', 60, 1);
+local utf8Resource = encoding:ShiftJIS_To_UTF8(zone);
+```
