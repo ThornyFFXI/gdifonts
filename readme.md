@@ -115,5 +115,10 @@ Because FFXI resources are stored in Shift-JIS, they must be converted to render
 ```
 local encoding = require('gdifonts.encoding');
 local sjResource = AshitaCore:GetResourceManager():GetString('zones.names', 60, 1);
-local utf8Resource = encoding:ShiftJIS_To_UTF8(zone);
+local utf8Resource = encoding:ShiftJIS_To_UTF8(sjResource);
+```
+
+You can also convert back to shift-JIS if necessary.
+```
+local sjResourceAgain = encoding:UTF8_to_ShiftJIS(utf8Resource);
 ```
