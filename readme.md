@@ -118,10 +118,10 @@ myRectObject:set_outline_width(width); --Sets width of outline(0 to disable). Ac
 myRectObject:set_fill_color(color); --Sets fill color for the rectangle. Accepts a 32 bit ARGB value.
 myRectObject:set_gradient_color(color); --Sets a color for the fill gradient to blend into.  Accepts a 32 bit ARGB value.
 myRectObject:set_gradient_style(style); --Sets a gradient style.  Styles are located in gdi.Gradient table.
-myFontObject:set_position_x(position); --Relocates the object.  Accepts a number.
-myFontObject:set_position_y(position); --Relocates the object.  Accepts a number.
-myFontObject:set_visible(visible); --Determines if render calls will draw the object.  Accepts a boolean.
-myFontObject:set_z_order(order); --Sets Z order.  Only applies to managed objects.  Accepts a number.
+myRectObject:set_position_x(position); --Relocates the object.  Accepts a number.
+myRectObject:set_position_y(position); --Relocates the object.  Accepts a number.
+myRectObject:set_visible(visible); --Determines if render calls will draw the object.  Accepts a boolean.
+myRectObject:set_z_order(order); --Sets Z order.  Only applies to managed objects.  Accepts a number.
 ```
 
 
@@ -139,7 +139,7 @@ during every frame you want your managed objects to appear, at the time you want
 
 ## Unmanaged Objects
 If you need further control than that, you can still use this library to create unmanaged objects by specifying true for the second parameter of
-create_object as so:
+create_object or create_rect as so:
 ```
 local myFontObject = gdi:create_object(default_settings, true);
 ```
