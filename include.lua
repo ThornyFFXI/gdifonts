@@ -17,6 +17,7 @@ local libPath    = GetLibPath();
 local d3d        = require('d3d8');
 local ffi        = require('ffi');
 local fontobject = dofile(string.gsub(libPath, 'include.lua', 'fontobject.lua'));
+local rectobject = dofile(string.gsub(libPath, 'include.lua', 'rectobject.lua'));
 local renderer   = ffi.load(string.gsub(libPath, 'include.lua', 'gdifonttexture.dll'));
 ffi.cdef[[
     typedef struct {
@@ -32,6 +33,17 @@ ffi.cdef[[
         char     FontFamily[256];
         char     FontText[4096];
     } GdiFontData_t;
+    
+    typedef struct {
+        int32_t  Width;
+        int32_t  Height;
+        int32_t  Diameter;
+        uint32_t OutlineColor;
+        uint32_t OutlineWidth;
+        uint32_t FillColor;
+        uint32_t GradientStyle;
+        uint32_t GradientColor;
+    } GdiRectData_t;
 
     typedef struct {
         int32_t            Width;
@@ -42,6 +54,7 @@ ffi.cdef[[
     uint32_t* CreateFontManager(IDirect3DDevice8* pDevice);
     void DestroyFontManager(uint32_t* pManager);
     GdiFontReturn_t CreateTexture(uint32_t* pManager, GdiFontData_t* data);
+    GdiFontReturn_t CreateRectTexture(uint32_t* pManager, GdiRectData_t* data);
     bool GetFontAvailable(const char* font);
 ]]
 
@@ -55,33 +68,27 @@ if (ffi.C.D3DXCreateSprite(d3d.get_device(), sprite) == ffi.C.S_OK) then
 else
     sprite = nil;
 end
-local vec_position = ffi.new('D3DXVECTOR2', { 0, 0, });
-local vec_scale = ffi.new('D3DXVECTOR2', { 1.0, 1.0, });
-local d3dwhite = d3d.D3DCOLOR_ARGB(255, 255, 255, 255);
 local autoRender = false;
 
 local function render_objects()
     if (sprite ~= nil) then
         sprite:Begin();
         for _,obj in ipairs(objects) do
-            if (obj.settings.visible) then
-                local texture, rect = obj:get_texture();
-                if (texture ~= nil) then
-                    if (obj.settings.font_alignment == 1) then
-                        vec_position.x = obj.settings.position_x - (rect.right / 2);
-                    elseif (obj.settings.font_alignment == 2) then
-                        vec_position.x = obj.settings.position_x - rect.right;
-                    else
-                        vec_position.x = obj.settings.position_x;
-                    end
-                    vec_position.y = obj.settings.position_y;
-                    sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, d3dwhite);
-                end
-            end
+            obj:render(sprite);
         end
         sprite:End();
     end
 end
+local function sort_objects()
+    table.sort(objects, function(a,b) return (a.z_order < b.z_order) end);
+end
+
+local args = {
+    Interface = interface,
+    Renderer = renderer,
+    Rect = rectobject,
+    Sort = sort_objects,
+};
 
 -- Library exports..
 local exports = {};
@@ -118,7 +125,20 @@ function exports:create_object(settings, manual)
         return;
     end
 
-    local obj = fontobject:new(renderer, interface, settings);
+    local obj = fontobject:new(args, settings);
+    if (manual ~= true) then
+        objects:append(obj);
+    end
+    return obj;
+end
+
+function exports:create_rect(settings, manual)
+    if (interface == nil) then
+        error('Interface doesn\'t exist.');
+        return;
+    end
+
+    local obj = rectobject:new(args, settings);
     if (manual ~= true) then
         objects:append(obj);
     end
@@ -126,9 +146,6 @@ function exports:create_object(settings, manual)
 end
 
 function exports:destroy_interface()
-    for _,object in ipairs(objects) do
-        object:destroy();
-    end
     objects = T{};
     renderer.DestroyFontManager(interface);
 end
@@ -141,7 +158,7 @@ function exports:destroy_object(fontObject)
         end
     end
     objects = newTable;
-    fontObject:destroy();
+    sort_objects();
 end
 
 function exports:get_font_available(fontName)
@@ -151,6 +168,7 @@ end
 function exports:render()
     render_objects();
 end
+
 
 function exports:set_auto_render(enabled)
     local newSetting = (enabled == true);

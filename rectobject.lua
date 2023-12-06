@@ -12,38 +12,31 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 local d3d = require('d3d8');
 local ffi = require('ffi');
 local default_settings = {
-    box_height = 0,
-    box_width = 0,
-    font_alignment = 0,
-    font_color = 0xFFFFFFFF,
-    font_family = 'Grammara',
-    font_flags = 0,
-    font_height = 18,
-    gradient_color = 0x00000000,
-    gradient_style = 0,
+    width = 40,
+    height = 150,
+    corner_rounding = 0,
     outline_color = 0xFF000000,
-    outline_width = 2,
+    outline_width = 0,
+    fill_color = 0x80000000,
+    gradient_style = 0,
+    gradient_color = 0x00000000,
+    
     position_x = 0,
     position_y = 0,
     visible = true,
-    bg_overlap = 2,
-    text = '',
     z_order = 0,
 };
 
-local function CreateFontData(settings)
-    local data = ffi.new('GdiFontData_t');
-    data.BoxHeight = settings.box_height;
-    data.BoxWidth = settings.box_width;
-    data.FontHeight = settings.font_height;
-    data.OutlineWidth = settings.outline_width;
-    data.FontFlags = settings.font_flags;
-    data.FontColor = settings.font_color;
+local function CreateRectData(settings)
+    local data = ffi.new('GdiRectData_t');
+    data.Width = settings.width;
+    data.Height = settings.height;
+    data.Diameter = settings.corner_rounding;
     data.OutlineColor = settings.outline_color;
+    data.OutlineWidth = settings.outline_width;
+    data.FillColor = settings.fill_color;
     data.GradientStyle = settings.gradient_style;
     data.GradientColor = settings.gradient_color;
-    data.FontFamily = settings.font_family;
-    data.FontText = settings.text;
     return data;
 end
 
@@ -54,10 +47,7 @@ function object:get_texture()
         self.is_dirty = false;
         self.texture = nil;
         self.rect = nil;
-        if (self.settings.text == '') then
-            return;
-        end
-        local tx = self.renderer.CreateTexture(self.interface, CreateFontData(self.settings));
+        local tx = self.renderer.CreateRectTexture(self.interface, CreateRectData(self.settings));
         if (tx.Texture == nil) or (tx.Width == 0) or (tx.Height == 0) then
             return;
         else
@@ -73,7 +63,6 @@ function object:new(args, settings)
     local o = {};
     setmetatable(o, self);
     self.__index = self;
-    o.args = args;
     o.is_dirty = true;
     o.interface = args.Interface;
     o.renderer = args.Renderer;
@@ -86,9 +75,6 @@ function object:new(args, settings)
             o.settings[key] = value;
         end
     end
-    if (type(settings) == 'table') and (type(settings.background) == 'table') then
-        o.bg_obj = o.args.Rect:new(args, settings.background);
-    end
     return o;
 end
 
@@ -99,92 +85,45 @@ function object:render(sprite)
     if (self.settings.visible ~= true) then
         return;
     end
-
     local texture, rect = self:get_texture();
     if (texture ~= nil) then
-        if (self.settings.font_alignment == 1) then
-            vec_position.x = self.settings.position_x - (rect.right / 2);
-        elseif (self.settings.font_alignment == 2) then
-            vec_position.x = self.settings.position_x - rect.right;
-        else
-            vec_position.x = self.settings.position_x;
-        end
+        vec_position.x = self.settings.position_x;
         vec_position.y = self.settings.position_y;
-
-        if (self.bg_obj ~= nil) then
-            local bgOverlap = self.settings.bg_overlap + self.bg_obj.settings.outline_width;
-            self.bg_obj:set_width(rect.right + (2 * bgOverlap));
-            self.bg_obj:set_height(rect.bottom + (2 * bgOverlap));
-            self.bg_obj:set_position_x(vec_position.x - bgOverlap);
-            self.bg_obj:set_position_y(vec_position.y - bgOverlap);
-            self.bg_obj:render(sprite);
-        end
-
         sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, d3dwhite);
     end
 end
 
-function object:get_background()
-    return self.bg_obj;
-end
 
-function object:set_background(settings)
-    self.bg_obj = self.args.Rect:new(self.args, self.interface, settings);
-end
-
-function object:set_bg_overlap(overlap)
-    self.settings.bg_overlap = overlap;
-end
-    
-function object:set_box_height(height)
-    if (self.settings.box_height ~= height) then
-        self.is_dirty = true;
-    end
-    self.settings.box_height = height;
-end
-    
-function object:set_box_width(width)
-    if (self.settings.box_width ~= width) then
-        self.is_dirty = true;
-    end
-    
-    self.settings.box_width = width;
-end
-
-function object:set_font_alignment(alignment)
-    self.settings.font_alignment = alignment;
-end
-
-function object:set_font_color(color)
-    if (color ~= self.settings.font_color) then
+function object:set_width(width)
+    if (width ~= self.settings.width) then
         self.is_dirty = true;
     end
 
-    self.settings.font_color = color;
+    self.settings.width = width;
 end
 
-function object:set_font_family(family)
-    if (family ~= self.settings.font_family) then
+function object:set_height(height)
+    if (height ~= self.settings.height) then
         self.is_dirty = true;
     end
 
-    self.settings.font_family = family;
+    self.settings.height = height;
 end
 
-function object:set_font_flags(flags)
-    if (flags ~= self.settings.font_flags) then
+function object:set_corner_rounding(rounding)
+    if (rounding ~= self.settings.corner_rounding) then
         self.is_dirty = true;
     end
 
-    self.settings.font_flags = flags;
+    self.settings.corner_rounding = rounding;
 end
 
-function object:set_font_height(height)
-    if (height ~= self.settings.font_height) then
+function object:set_fill_color(color)
+    if (color ~= self.settings.fill_color) then
         self.is_dirty = true;
     end
 
-    self.settings.font_height = height;
+    self.settings.fill_color = color;
 end
 
 function object:set_gradient_color(color)
@@ -225,14 +164,6 @@ end
 
 function object:set_position_y(y)
     self.settings.position_y = y;
-end
-
-function object:set_text(text)
-    if (text ~= self.settings.text) then
-        self.is_dirty = true;
-    end
-
-    self.settings.text = text;
 end
 
 function object:set_visible(visible)
