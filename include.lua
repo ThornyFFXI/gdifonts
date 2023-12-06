@@ -128,6 +128,7 @@ function exports:create_object(settings, manual)
     local obj = fontobject:new(args, settings);
     if (manual ~= true) then
         objects:append(obj);
+        sort_objects();
     end
     return obj;
 end
@@ -141,6 +142,7 @@ function exports:create_rect(settings, manual)
     local obj = rectobject:new(args, settings);
     if (manual ~= true) then
         objects:append(obj);
+        sort_objects();
     end
     return obj;
 end
