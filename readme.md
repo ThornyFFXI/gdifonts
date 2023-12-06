@@ -21,7 +21,7 @@ gdi:destroy_interface();
 <br><br>
 
 ## Creating a managed font object
-GdiFonts creates class objects to manage each font.  Each object must be populated with the following settings table:
+GdiFonts creates class objects to manage each font.  Each object must be populated with a settings table.  Any value omitted from the table will use these defaults.  The background table can be omitted entirely, but if it is provided then members should be in the layout of 'Rectangle/Background Objects'.
 ```
 local fontSettings = {
     box_height = 0,
@@ -39,23 +39,26 @@ local fontSettings = {
     position_y = 0,
     visible = true,
     text = '',
+    background = { visible = false }
 };
 ```
 Once you've created the settings table, you can create a managed font object with this call:
 ```
 local myFontObject = gdi:create_object(fontSettings, false);
 ```
-To destroy the object, use this call:
+To remove the object from management, use this call:
 ```
 gdi:destroy_object(myFontObject);
 ```
-You do not need to destroy managed font objects on unload; destroying the interface will handle it.
-If you only want to temporarily hide the object, you should use the set_visible method instead of destroying it.<br><br>
+You do not need to destroy objects unless they are managed, once no remaining references remain the garbage collector will clear up resources.<br><br>
 
 
 ## Modifying a font object
 To update the object's text or parameters, you can use any of these calls, which set the same values in defaults:
 ```
+myFontObject:get_background(); --Returns a rectangle object that will always be drawn immediately prior to the font object if visible.
+myFontObject:set_background(settings); --Sets the background using a table of the same format used in creating a rectangle.
+myFontObject:set_bg_overlap(overlap); --Sets how many pixels the background should overlap the font.
 myFontObject:set_box_height(height); --Sets maximum height of font.  Accepts a number, 0 will be treated as no maximum.
 myFontObject:set_box_width(width); --Sets maximum width of displayed font.  Accepts a number, 0 will be treated as no maximum.
 myFontObject:set_font_alignment(alignment);  --Sets font alignment.  Accepts gdi.Aligment.Left, gdi.Alignment.Center, or gdi.Alignment.Right.
@@ -65,13 +68,62 @@ myFontObject:set_font_flags(flags); --Sets font flags.  Accepts gdi.FontFlags.No
 myFontObject:set_font_height(height); --Sets font height.  Accepts a number.
 myFontObject:set_gradient_color(color); --Sets a color for the font gradient to blend into.  Accepts a 32 bit ARGB value.
 myFontObject:set_gradient_style(style); --Sets a gradient style.  Styles are located in gdi.Gradient table.
+myFontObject:set_opacity(opacity);  --Sets the overall opacity in the range of 0-1. If you need to simply fade in/out text, this is much better than setting font_color as it avoids texture re-creation.
 myFontObject:set_outline_color(color); --Sets a color for the font outline.  Accepts a 32 bit ARGB value.
 myFontObject:set_outline_width(width); --Sets width of outline.  Accepts a number, use 0 to disable outlines.
-myFontObject:set_position_x(position); --Relocates the object.  Accepts a number.  Does nothing for unmanaged objects.
-myFontObject:set_position_y(position); --Relocates the object.  Accepts a number.  Does nothing for unmanaged objects.
+myFontObject:set_position_x(position); --Relocates the object.  Accepts a number.
+myFontObject:set_position_y(position); --Relocates the object.  Accepts a number.
 myFontObject:set_text(text); --Updates font object text.  Accepts a string.
-myFontObject:set_visible(visible);  --Draws or hides the object.  Accepts a boolean.  Does nothing for unmanaged objects.
+myFontObject:set_visible(visible);  --Determines if render calls will draw the object.  Accepts a boolean.
+myFontObject:set_z_order(order);  --Sets Z order.  Only applies to managed objects.  Accepts a number.
 ```
+
+## Rectangle Objects
+Gdifonts can create rectangles or rounded rectangles to serve as backgrounds.  This is **not** efficient rendering, and should not be used as a primary graphics source.  Each object must be populated with a settings table.  Any value omitted from the table will use these defaults.
+```
+local rectSettings = {
+    width = 40,
+    height = 150,
+    corner_rounding = 0,
+    outline_color = 0xFF000000,
+    outline_width = 0,
+    fill_color = 0x80000000,
+    gradient_style = 0,
+    gradient_color = 0x00000000,
+    
+    position_x = 0,
+    position_y = 0,
+    visible = true,
+    z_order = 0,
+};
+```
+Once you've created the settings table, you can create a managed rectangle object with this call:
+```
+local myRectObject = gdi:create_rect(rectSettings, false);
+```
+To remove the object from management, use this call:
+```
+gdi:destroy_object(myRectObject);
+```
+You do not need to destroy objects unless they are managed, once no remaining references remain the garbage collector will clear up resources.
+
+## Modifying a rectangle object
+To update the object's text or parameters, you can use any of these calls, which set the same values as in defaults:
+```
+myRectObject:set_width(width); --Changes width of object.  Accepts a number.
+myRectObject:set_height(height); --Changes height of object. Accepts a number.
+myRectObject:set_corner_rounding(rounding); --Changes corner rounding. Accepts a number.
+myRectObject:set_outline_color(color); --Changes outline color. Accepts a 32 bit ARGB valrue.
+myRectObject:set_outline_width(width); --Sets width of outline(0 to disable). Accepts a number.
+myRectObject:set_fill_color(color); --Sets fill color for the rectangle. Accepts a 32 bit ARGB value.
+myRectObject:set_gradient_color(color); --Sets a color for the fill gradient to blend into.  Accepts a 32 bit ARGB value.
+myRectObject:set_gradient_style(style); --Sets a gradient style.  Styles are located in gdi.Gradient table.
+myFontObject:set_position_x(position); --Relocates the object.  Accepts a number.
+myFontObject:set_position_y(position); --Relocates the object.  Accepts a number.
+myFontObject:set_visible(visible); --Determines if render calls will draw the object.  Accepts a boolean.
+myFontObject:set_z_order(order); --Sets Z order.  Only applies to managed objects.  Accepts a number.
+```
+
 
 ## Altering render time
 By default, objects are created as managed.  This means GdiFonts will track and render them, and all you need to do is change the parameters.
@@ -85,21 +137,21 @@ gdi:render();
 ```
 during every frame you want your managed objects to appear, at the time you want them to be drawn.<br><br>
 
-## Unmanaged Font Objects
+## Unmanaged Objects
 If you need further control than that, you can still use this library to create unmanaged objects by specifying true for the second parameter of
 create_object as so:
 ```
 local myFontObject = gdi:create_object(default_settings, true);
 ```
-This will make you fully responsible for the object, and you must call:
+This will make you fully responsible for the object.  Objects do not memory leak, once they go out of scope entirely they will be cleaned up by garbage collector.  To render an unmanaged object, you can use this call:
 ```
-gdi:destroy_object(myFontObject);
+fontObject:render(sprite);
 ```
-upon unload for every unmanaged object to avoid memory leaks.  To render an unmanaged object, you can use this call:
+which requires you pass in a sprite that has already begun rendering.  Alternatively, if you need higher control, you can call get_texture:
 ```
 local texture, rect = fontObject:get_texture();
 ```
-This will return nil if the object has no text, or cannot be rendered.  Otherwise, it will give you a texture and the rect within the texture where the font is located.  You can use these to draw via sprite as you see fit.
+This will return nil if the object has no text, or cannot be rendered.  Otherwise, it will give you a texture and the rect within the texture where the font is located.  You can use these to draw via sprite as you see fit.  These functions are identical for both fontObjects and rectObjects.  Note that when calling render on a fontObject, the built in background will automatically be drawn, while calling get_texture will not draw it.
 
 ## Font Helper Function
 This is a small extra, but it is tedious to do from lua, so I have included it here.  It may be moved elsewhere eventually.

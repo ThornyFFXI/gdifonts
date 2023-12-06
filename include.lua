@@ -80,7 +80,7 @@ local function render_objects()
     end
 end
 local function sort_objects()
-    table.sort(objects, function(a,b) return (a.z_order < b.z_order) end);
+    table.sort(objects, function(a,b) return (a.settings.z_order < b.settings.z_order) end);
 end
 
 local args = {

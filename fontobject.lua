@@ -12,6 +12,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 local d3d = require('d3d8');
 local ffi = require('ffi');
 local default_settings = {
+    bg_overlap = 2,
     box_height = 0,
     box_width = 0,
     font_alignment = 0,
@@ -21,13 +22,13 @@ local default_settings = {
     font_height = 18,
     gradient_color = 0x00000000,
     gradient_style = 0,
+    opacity = 1,
     outline_color = 0xFF000000,
     outline_width = 2,
     position_x = 0,
     position_y = 0,
-    visible = true,
-    bg_overlap = 2,
     text = '',
+    visible = true,
     z_order = 0,
 };
 
@@ -94,9 +95,8 @@ end
 
 local vec_position = ffi.new('D3DXVECTOR2', { 0, 0, });
 local vec_scale = ffi.new('D3DXVECTOR2', { 1.0, 1.0, });
-local d3dwhite = d3d.D3DCOLOR_ARGB(255, 255, 255, 255);
 function object:render(sprite)
-    if (self.settings.visible ~= true) then
+    if (self.settings.visible ~= true) or (self.settings.opacity == 0) then
         return;
     end
 
@@ -120,7 +120,9 @@ function object:render(sprite)
             self.bg_obj:render(sprite);
         end
 
-        sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, d3dwhite);
+        
+        local render_color = d3d.D3DCOLOR_ARGB(math.ceil(255 * self.settings.opacity), 255, 255, 255);
+        sprite:Draw(texture, rect, vec_scale, nil, 0.0, vec_position, render_color);
     end
 end
 
@@ -201,6 +203,10 @@ function object:set_gradient_style(style)
     end
 
     self.settings.gradient_style = style;
+end
+
+function object:set_opacity(opacity)
+    self.settings.opacity = math.max(0, math.min(1, opacity));
 end
 
 function object:set_outline_color(color)
