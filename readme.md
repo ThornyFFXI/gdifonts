@@ -21,24 +21,27 @@ gdi:destroy_interface();
 <br><br>
 
 ## Creating a managed font object
-GdiFonts creates class objects to manage each font.  Each object must be populated with a settings table.  Any value omitted from the table will use these defaults.  The background table can be omitted entirely, but if it is provided then members should be in the layout of 'Rectangle/Background Objects'.
+GdiFonts creates class objects to manage each font.  Each object must be populated with a settings table.  Any value omitted from the table will use these defaults.  The background table can be omitted entirely, but if it is provided then members should be in the layout of 'Rectangle/Background Objects'.  When created as part of a font object, backgrounds will be automatically sized and positioned correctly.
 ```
-local fontSettings = {
+local fontSettings = {    
+    bg_overlap = 2,
     box_height = 0,
     box_width = 0,
-    font_alignment = gdi.Alignment.Left,
+    font_alignment = 0,
     font_color = 0xFFFFFFFF,
     font_family = 'Grammara',
-    font_flags = gdi.FontFlags.None,
+    font_flags = 0,
     font_height = 18,
     gradient_color = 0x00000000,
-    gradient_style = gdi.Gradient.None,
+    gradient_style = 0,
+    opacity = 1,
     outline_color = 0xFF000000,
     outline_width = 2,
     position_x = 0,
     position_y = 0,
-    visible = true,
     text = '',
+    visible = true,
+    z_order = 0,
     background = { visible = false }
 };
 ```
