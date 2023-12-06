@@ -122,3 +122,8 @@ You can also convert back to shift-JIS if necessary.
 ```
 local sjResourceAgain = encoding:UTF8_To_ShiftJIS(utf8Resource);
 ```
+
+ShiftJIS_To_UTF8 and UTF8_To_ShiftJIS both take an optional second parameter `cache`, which if set to `true` will cache the converted string and skip conversion the next time the same input string is provided.
+```
+local utf8Resource = encoding:ShiftJIS_To_UTF8(sjResource, true);
+```
