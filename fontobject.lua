@@ -28,6 +28,7 @@ local default_settings = {
     position_y = 0,
     visible = true,
     text = '',
+    opacity = 1,
 };
 
 local function CreateFontData(settings)
@@ -116,6 +117,10 @@ function object:set_font_color(color)
     end
 
     self.settings.font_color = color;
+end
+
+function object:set_opacity(opacity)
+    self.settings.opacity = math.max(0, math.min(1, opacity));
 end
 
 function object:set_font_family(family)

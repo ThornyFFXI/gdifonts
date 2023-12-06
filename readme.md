@@ -60,6 +60,7 @@ myFontObject:set_box_height(height); --Sets maximum height of font.  Accepts a n
 myFontObject:set_box_width(width); --Sets maximum width of displayed font.  Accepts a number, 0 will be treated as no maximum.
 myFontObject:set_font_alignment(alignment);  --Sets font alignment.  Accepts gdi.Aligment.Left, gdi.Alignment.Center, or gdi.Alignment.Right.
 myFontObject:set_font_color(color);  --Sets font color.  Accepts a 32 bit ARGB value.
+myFontObject:set_opacity(opacity);  --Sets the overall opacity in the range of 0-1. If you need to simply fade in/out text, this is much better than setting font_color as it avoids texture re-creation.
 myFontObject:set_font_family(family); --Sets font family.  Accepts a string.
 myFontObject:set_font_flags(flags); --Sets font flags.  Accepts gdi.FontFlags.None, gdi.FontFlags.Bold, gdi.FontFlags.Italic, gdi.FontFlags.Underline, gdi.FontFlags.Strikeout, or a combination using bitwise or.
 myFontObject:set_font_height(height); --Sets font height.  Accepts a number.
