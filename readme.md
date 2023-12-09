@@ -165,6 +165,16 @@ local isAvailable = gdi:get_font_available(font);
 ```
 It will return true or false, depending on if the system has the font.
 
+## Saving output to disc
+For creating static assets, you can use the following calls:
+```
+gdi:enable_texture_dump('C:/Ashita 4/temp/');
+```
+```
+gdi:disable_texture_dump();
+```
+When enabled, every rendered font or rectangle object will be saved to the specified folder as a PNG file.  This will use a lot of resources and should never be used in production code.
+
 ## Using Japanese FFXI resources
 Because FFXI resources are stored in Shift-JIS, they must be converted to render properly.  You can accomplish this using the included encoding lib.  Simply require the lib, and use the function ShiftJIS_To_UTF8 prior to rendering your text.
 ```

@@ -56,6 +56,8 @@ ffi.cdef[[
     GdiFontReturn_t CreateTexture(uint32_t* pManager, GdiFontData_t* data);
     GdiFontReturn_t CreateRectTexture(uint32_t* pManager, GdiRectData_t* data);
     bool GetFontAvailable(const char* font);
+    void EnableTextureDump(uint32_t* pManager, const char* folder);
+    void DisableTextureDump(uint32_t* pManager);
 ]]
 
 local interface = renderer.CreateFontManager(d3d.get_device());
@@ -163,6 +165,16 @@ function exports:destroy_object(fontObject)
     sort_objects();
 end
 
+function exports:disable_texture_dump()
+    renderer.DisableTextureDump(interface);
+end
+
+function exports:enable_texture_dump(path)
+    if (ashita.fs.exists(path)) then
+        renderer.EnableTextureDump(interface, path);
+    end
+end
+
 function exports:get_font_available(fontName)
     return renderer.GetFontAvailable(fontName);
 end
@@ -170,7 +182,6 @@ end
 function exports:render()
     render_objects();
 end
-
 
 function exports:set_auto_render(enabled)
     local newSetting = (enabled == true);
