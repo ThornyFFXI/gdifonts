@@ -1,7 +1,7 @@
 local ffi = require('ffi');
 ffi.cdef[[
     int MultiByteToWideChar(uint32_t CodePage, uint32_t dwFlags, char* lpMultiByteStr, int cbMultiByte, wchar_t* lpMultiByteStr, int32_t cchWideChar);
-    int WideCharToMultiByte(uint32_t CodePage, uint32_t dwFlags, wchar_t* lpWideCharString, int32_t cchWideChar, char* lpMultiByteStr, int32_t cbMultiByte, char lpDefaultChar);
+    int WideCharToMultiByte(uint32_t CodePage, uint32_t dwFlags, wchar_t* lpWideCharStr, int32_t cchWideChar, char* lpMultiByteStr, int32_t cbMultiByte, const char* lpDefaultChar, bool* lpUsedDefaultChar);
 ]]
 
 local exports = T{};
@@ -27,21 +27,21 @@ local function Convert_String(input, codepage_from, codepage_to, cache)
     
     -- lua string > char[]
     local source_length = string.len(input);
-    local cbuffer = ffi.new('char[?]', source_length + 1); -- +1 for zero termination
+    local cbuffer = ffi.new('char[?]', source_length);
     ffi.copy(cbuffer, input);
 
     -- char[] > wchar_t[]
-    local wchar_length = ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, -1, nil, 0);
+    local wchar_length = ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, source_length, nil, 0);
     local wbuffer = ffi.new('wchar_t[?]', wchar_length);
-    ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, -1, wbuffer, wchar_length);
+    ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, source_length, wbuffer, wchar_length);
 
     -- wchar_t[] > char[]
-    local char_length = ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, -1, nil, 0, 0)
+    local char_length = ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, wchar_length, nil, 0, nil, nil);
     cbuffer = ffi.new('char[?]', char_length);
-    ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, -1, cbuffer, char_length, 0);
+    ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, wchar_length, cbuffer, char_length, nil, nil);
 
     -- Back to lua string
-    local new_str = ffi.string(cbuffer);
+    local new_str = ffi.string(cbuffer, char_length);
 
     -- Add to cache
     if cache == true then

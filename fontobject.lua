@@ -9,15 +9,18 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 ]]--
 
+local chat = require('chat');
 local d3d = require('d3d8');
 local ffi = require('ffi');
+
+local default_font = 'Arial';
 local default_settings = {
     bg_overlap = 2,
     box_height = 0,
     box_width = 0,
     font_alignment = 0,
     font_color = 0xFFFFFFFF,
-    font_family = 'Grammara',
+    font_family = default_font,
     font_flags = 0,
     font_height = 18,
     gradient_color = 0x00000000,
@@ -48,7 +51,37 @@ local function CreateFontData(settings)
     return data;
 end
 
+local function Error(text)
+    local stripped = string.gsub(text, '$H', ''):gsub('$R', '');
+    LogManager:Log(1, 'GdiFonts', stripped);
+    local color = ('\30%c'):format(68);
+    local highlighted = color .. string.gsub(text, '$H', '\30\01\30\02');
+    highlighted = string.gsub(highlighted, '$R', '\30\01' .. color);
+    print(chat.header('GdiFonts') .. highlighted .. '\30\01');
+end
+
+local notifiedFonts = {};
+local function GetDefaultFont(renderer)
+    if renderer.GetFontAvailable(default_font) then
+        return default_font;
+    elseif not notifiedFonts[default_font] then
+        Error(string.format('The default font ($H%s$R) is not installed.  Failed to load a valid font.', default_font));
+        notifiedFonts[default_font] = true;
+    end
+end
+local function ValidateFont(renderer, font)
+    if (renderer.GetFontAvailable(font) == false) then
+        if not notifiedFonts[font] then
+            Error(string.format('Could not load the font $H%s$R.', font));
+            notifiedFonts[font] = true;
+        end
+        return GetDefaultFont(renderer);
+    end
+    return font;
+end
+
 local object = {};
+
 
 function object:get_texture()
     if (self.is_dirty == true) then
@@ -90,6 +123,7 @@ function object:new(args, settings)
     if (type(settings) == 'table') and (type(settings.background) == 'table') then
         o.bg_obj = o.args.Rect:new(args, settings.background);
     end
+    o.settings.font_family = ValidateFont(o.renderer, o.settings.font_family);
     return o;
 end
 
@@ -166,6 +200,7 @@ function object:set_font_color(color)
 end
 
 function object:set_font_family(family)
+    family = ValidateFont(self.renderer, family);
     if (family ~= self.settings.font_family) then
         self.is_dirty = true;
     end
