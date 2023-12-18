@@ -15,6 +15,10 @@ local converted_str_cache = {};
 
 local function Convert_String(input, codepage_from, codepage_to, cache)
     input = tostring(input or '');
+    local source_length = string.len(input);
+    if source_length == 0 then
+        return input
+    end
 
     -- Check cache
     local cache_key = input .. '|' .. codepage_from .. '>' .. codepage_to;
@@ -24,24 +28,23 @@ local function Convert_String(input, codepage_from, codepage_to, cache)
             return cached_str;
         end
     end
-    
+
     -- lua string > char[]
-    local source_length = string.len(input);
-    local cbuffer = ffi.new('char[?]', source_length);
+    local cbuffer = ffi.new('char[?]', source_length + 1);
     ffi.copy(cbuffer, input);
 
     -- char[] > wchar_t[]
-    local wchar_length = ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, source_length, nil, 0);
+    local wchar_length = ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, -1, nil, 0);
     local wbuffer = ffi.new('wchar_t[?]', wchar_length);
-    ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, source_length, wbuffer, wchar_length);
+    ffi.C.MultiByteToWideChar(codepage_from, 0, cbuffer, -1, wbuffer, wchar_length);
 
     -- wchar_t[] > char[]
-    local char_length = ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, wchar_length, nil, 0, nil, nil);
+    local char_length = ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, -1, nil, 0, ' ', nil);
     cbuffer = ffi.new('char[?]', char_length);
-    ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, wchar_length, cbuffer, char_length, nil, nil);
+    ffi.C.WideCharToMultiByte(codepage_to, 0, wbuffer, -1, cbuffer, char_length, ' ', nil);
 
     -- Back to lua string
-    local new_str = ffi.string(cbuffer, char_length);
+    local new_str = ffi.string(cbuffer);
 
     -- Add to cache
     if cache == true then
