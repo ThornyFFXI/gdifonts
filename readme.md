@@ -174,6 +174,10 @@ gdi:enable_texture_dump('C:/Ashita 4/temp/');
 gdi:disable_texture_dump();
 ```
 When enabled, every rendered font or rectangle object will be saved to the specified folder as a PNG file.  This will use a lot of resources and should never be used in production code.
+If you want to capture the next auto-render frame, you can use this call to enable dumps for only a single render:
+```
+gdi:dump_frame('C:/Ashita 4/temp/);
+```
 
 ## Using Japanese FFXI resources
 Because FFXI resources are stored in Shift-JIS, they must be converted to render properly.  You can accomplish this using the included encoding lib.  Simply require the lib, and use the function ShiftJIS_To_UTF8 prior to rendering your text.

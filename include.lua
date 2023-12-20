@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 ]]--
 
 local function GetLibPath()
-  return debug.getinfo(2, "S").source:sub(2);
+    return debug.getinfo(2, "S").source:sub(2);
 end
 
 local libPath    = GetLibPath();
@@ -72,13 +72,24 @@ else
 end
 local autoRender = false;
 
+local frameDumpEnabled = false;
 local function render_objects()
+    if (frameDumpEnabled) then
+        for _,obj in ipairs(objects) do
+            obj.is_dirty = true;
+        end
+    end
+
     if (sprite ~= nil) then
         sprite:Begin();
         for _,obj in ipairs(objects) do
             obj:render(sprite);
         end
         sprite:End();
+        if (frameDumpEnabled) then
+            frameDumpEnabled = false;
+            renderer.DisableTextureDump(interface);
+        end
     end
 end
 local function sort_objects()
@@ -167,6 +178,13 @@ end
 
 function exports:disable_texture_dump()
     renderer.DisableTextureDump(interface);
+end
+
+function exports:dump_frame(path)
+    if (ashita.fs.exists(path)) then
+        renderer.EnableTextureDump(interface, path);
+        frameDumpEnabled = true;
+    end
 end
 
 function exports:enable_texture_dump(path)
