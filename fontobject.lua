@@ -287,4 +287,14 @@ function object:set_z_order(z_order)
     end
 end
 
+function object:get_text_size()
+    if self.is_dirty then
+        self:get_texture();
+    end
+    if self.rect == nil then
+        return 0, 0;
+    end
+    return (self.rect.right - self.rect.left), (self.rect.bottom - self.rect.top);
+end
+
 return object;
