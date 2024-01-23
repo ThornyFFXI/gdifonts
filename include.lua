@@ -193,8 +193,15 @@ function exports:enable_texture_dump(path)
     end
 end
 
+local checkedFonts = T{};
 function exports:get_font_available(fontName)
-    return renderer.GetFontAvailable(fontName);
+    local result = checkedFonts[fontName];
+    if result ~= nil then
+        return result;
+    end
+    result = renderer.GetFontAvailable(fontName);
+    checkedFonts[fontName] = result;
+    return result;
 end
 
 function exports:render()
